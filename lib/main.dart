@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:io' show Platform;
+import 'package:fluttertoast/fluttertoast.dart';
 
 void main() => runApp(const NotificationsGen());
 
@@ -15,6 +17,7 @@ class _NotificationsGenState extends State<NotificationsGen> {
   late FlutterLocalNotificationsPlugin flutterLocalNotification;
   @override
   void initState() {
+    // init settings
     super.initState();
     var androidInit = const AndroidInitializationSettings('ic_launcher');
     var iOSInit = const IOSInitializationSettings();
@@ -26,15 +29,38 @@ class _NotificationsGenState extends State<NotificationsGen> {
   }
 
   Future onNotificationSelected(String? payload) async {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        content: Text("Notification : $payload"),
-      ),
-    );
+    // show toast when notification is clicked android
+    if (Platform.isAndroid) {
+      await Fluttertoast.showToast(
+          msg: "Notification pressed",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    } else if (Platform.isIOS) {
+      // show alert when notification is clicked ios
+      showCupertinoDialog(
+          context: context,
+          builder: (_) => Container(
+              alignment: Alignment.center,
+              child: Container(
+                width: 300,
+                height: 200,
+                color: Colors.white,
+                child: CupertinoButton(
+                  child: const Text('Notification pressed'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              )));
+    }
   }
 
   Future _showNotification() async {
+    // initialized notfication group params
     const String groupKey = 'Grouped notification';
     const String groupChannelId = 'Channel 1';
     const String groupChannelName = 'Group 1';
@@ -47,18 +73,30 @@ class _NotificationsGenState extends State<NotificationsGen> {
             importance: Importance.max,
             priority: Priority.high,
             groupKey: groupKey);
+
+    // ios platform specefics second
+    const IOSNotificationDetails iOSFirstSecondPlatformChannelSpecifics =
+        IOSNotificationDetails(threadIdentifier: threadId);
+
     const NotificationDetails firstNotificationPlatformSpecifics =
-        NotificationDetails(android: firstNotificationAndroidSpecifics);
+        NotificationDetails(
+            android: firstNotificationAndroidSpecifics,
+            iOS: iOSFirstSecondPlatformChannelSpecifics);
+    // show first notification
     await flutterLocalNotification.show(1, 'Alex Faarborg',
         'You will not believe...', firstNotificationPlatformSpecifics);
+
+    // android platform specefics
     const AndroidNotificationDetails secondNotificationAndroidSpecifics =
         AndroidNotificationDetails(
             groupChannelId, groupChannelName, groupChannelDescription,
             importance: Importance.max,
             priority: Priority.high,
             groupKey: groupKey);
+    // ios platform specefics second
     const IOSNotificationDetails iOSSecondPlatformChannelSpecifics =
         IOSNotificationDetails(threadIdentifier: threadId);
+
     const NotificationDetails secondNotificationPlatformSpecifics =
         NotificationDetails(
             android: secondNotificationAndroidSpecifics,
@@ -78,6 +116,8 @@ class _NotificationsGenState extends State<NotificationsGen> {
       'Alex Faarborg  Check this out',
       'Jeff Chang    Launch Party'
     ];
+
+    //inbox style notification grouping for android
     const InboxStyleInformation inboxStyleInformation = InboxStyleInformation(
         lines,
         contentTitle: '2 messages',
@@ -93,13 +133,15 @@ class _NotificationsGenState extends State<NotificationsGen> {
     const NotificationDetails platformChannelSpecifics = NotificationDetails(
         android: androidPlatformChannelSpecifics,
         iOS: iOSPlatformChannelSpecifics);
+    //show groupped notification
     await flutterLocalNotification.show(
         3, 'Attention', 'Two messages', platformChannelSpecifics);
   }
 
-  @override
-  Widget build(BuildContext context) {
+  // android layout
+  Widget androidHome(bool debugBanner) {
     return MaterialApp(
+        debugShowCheckedModeBanner: debugBanner,
         title: "Notifications Example",
         home: Scaffold(
           appBar: AppBar(
@@ -118,5 +160,31 @@ class _NotificationsGenState extends State<NotificationsGen> {
             ),
           ),
         ));
+  }
+
+  // ios layout
+  Widget iOSHome(bool debugBanner) {
+    return CupertinoApp(
+      debugShowCheckedModeBanner: debugBanner,
+      title: "Notifications Example",
+      home: CupertinoPageScaffold(
+        navigationBar: const CupertinoNavigationBar(
+          middle: Text('Cupertino Store'),
+        ),
+        child: Center(
+          child: CupertinoButton(
+              child: const Text('Show Notification'),
+              onPressed: _showNotification),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    bool _debugBanner = false;
+    return Platform.isAndroid
+        ? androidHome(_debugBanner)
+        : iOSHome(_debugBanner);
   }
 }

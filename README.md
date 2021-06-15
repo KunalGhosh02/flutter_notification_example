@@ -1,16 +1,16 @@
-# flutter_notfication_example
+# Flutter notfication example
 
 A new Flutter application to test nested notifications.
 
-## Getting Started
+## nested notifications on android and ios
 
-This project is a starting point for a Flutter application.
+I used flutter_local_notifications pub package to create notifications in this flutter app. First I had to initialize the settings required for the notifications to work. It sets up android permissions by itself so didnt had to do anything but in iOS I had to set up a user notification delegate. Also initialized a callback for when notification is clicked on.
 
-A few resources to get you started if this is your first Flutter project:
+### Grouping
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+For android you have to specify the notification group params for them to stick to one group. Later it is merged into a Android Inbox style notification under the same summary.
+For iOS, all notification under same thread ID are grouped automatically so did not do anything for that.
+I specefied all required values in NotificationDetails constructor for each plaform.
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+I have also created different layouts for Android and IOS.
+It can be differntitated using a simple platform value check.
